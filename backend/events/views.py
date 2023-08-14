@@ -10,3 +10,12 @@ class EventListCreate(generics.ListCreateAPIView):
 class EventRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+
+class VenueListCreate(generics.ListCreateAPIView):
+    queryset = Venue.objects.all()
+    serializer_class = VenueSerializer
+
+class VenueRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Venue.objects.all()
+    serializer_class = VenueSerializer
+    
