@@ -10,21 +10,29 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from django.core.management.utils import get_random_secret_key
+from dotenv import load_dotenv
+from os import getenv, path
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+dotenv_file = BASE_DIR / '.env.local'
+if path.isfile(dotenv_file):
+    load_dotenv(dotenv_file)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-%fo2jlpt@lp)=004x4j_+u)729&v^1@ua7bsgdm5*hpxppwf!&'
+SECRET_KEY = getenv('DJANGO_SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = getenv('DJANGO_ALLOWED_HOSTS',
+                       '127.0.0.1,localhost').split(',')
 
 # Application definition
 
@@ -35,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
     'allauth',
@@ -48,19 +58,23 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+CORS_ALLOWED_ORIGINS = getenv('CORS_ALLOWED_ORIGINS',
+                              'http://localhost:3000,http://127.0.0.1:3000').split(',')
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'eventplanner.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [path.join(BASE_DIR, "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,6 +82,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.email_settings',
             ],
         },
     },
@@ -122,6 +137,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -147,16 +165,14 @@ AUTHENTICATION_BACKENDS = [
 
 # Email Backend Setup
 # loading env variables
-from os import getenv as env
-from dotenv import load_dotenv
-load_dotenv()
 
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For testing, use console backend
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_PORT = int(env('EMAIL_PORT'))
-EMAIL_HOST_USER = env('EMAIL')
-EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD')
+# For testing, use console backend
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = getenv('EMAIL_HOST')
+EMAIL_PORT = int(getenv('EMAIL_PORT'))
+EMAIL_HOST_USER = getenv('EMAIL')
+EMAIL_HOST_PASSWORD = getenv('EMAIL_PASSWORD')
 EMAIL_USE_TLS = True
 
 ACCOUNT_EMAIL_REQUIRED = True
@@ -318,3 +334,13 @@ ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 '''
+
+# ACCOUNT_EMAIL_CONFIRMATION_URL = 'http://localhost:3000/auth/account-confirm-email/{key}/'
+ACCOUNT_EMAIL_CONFIRMATION_URL = '{protocol}://{domain}/accounts/account-confirm-email/{key}/'
+
+SITE_ID = 1
+# ACCOUNT_EMAIL_SUBJECT_PREFIX = 'sdjfhskdjfhaskdjfh'
+ACCOUNT_EMAIL_MESSAGE = "Hello, thank you for registering at our website! Please click the following link to verify your email address: {0}"
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'jsfhgkjshfkjdhfskjdfh://'
+EMAIL_CONFIRMATION_URI = {'activation': 'http://localhost:3000/auth/activation/',
+                          'password_reset': 'http://localhost:3000/password-reset/'}

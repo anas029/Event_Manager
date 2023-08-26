@@ -1,0 +1,20 @@
+{% extends "account/email/base_message.txt" %}
+{% load account %}
+{% load i18n %}
+
+{% block content %}
+    {% autoescape off %}
+        {% user_display user as user_display %}
+            {% blocktrans with site_name=current_site.name site_domain=current_site.domain ssdf=current_site.id%}
+You're receiving this e-mail because user {{ user_display }} has given your e-mail address to register an account on {{ site_domain }}.
+{{key}}
+To confirm this is correct, go to change changgsdfgjhdkjghdlkgjhdkj {{ activate_url }}
+DOMAIN
+{{site_domain}}
+{{ssdf}}
+
+            {% endblocktrans %}
+        {% endautoescape %}
+        To confirm this is correct, go to: {{EMAIL_SETTING.activation}}{{key}}
+        To reset this is correct, go to: {{EMAIL_SETTING.password_reset}}{{key}}
+ {% endblock %}
